@@ -1,0 +1,91 @@
+﻿@model Product
+@using System.Security.Claims;
+@inject ApplicationDbContext context;
+@inject WebCosmeticsStore.Repositories.IProductRepository productRepository;
+@{
+    ViewData["Title"] = "Detail";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<h1>Detail</h1>
+<style>
+    .bg-FFCCFF {
+        background-color: #FFCCFF;
+    }
+
+    .bg-000033 {
+        background-color: #000033;
+    }
+</style>
+<form method="post">
+    <div class="card container">       
+        <div class="card-body row container">
+            <div class="container rounded p-2">
+                <div class="row">
+                    <div class="col-8 col-lg-8">
+                        <div class="row pl-2">
+                            <h5 class="text-muted">Tên sản phẩm: @Model.Name</h5>
+                        </div>
+                        <div class="row pl-2">
+                            @if (Model.Category != null)
+                            {
+                                <h5 class="text-muted">Loại sản phẩm: @Model.Category.Name</h5>
+                            }
+                            else
+                            {
+                                <h5 class="text-muted">Author: Unknown</h5>
+                            }
+                        </div>
+                        <div class="row pl-2">
+                            <h5 class="text-muted pb-2">
+                                Giá: @Model.Price.ToString("c")
+                            </h5>
+                        </div>   
+                        <div class="row pl-2">
+                            <h5 class="text-muted pb-2">
+                                Mô tả: @Model.Description
+                            </h5>
+                        </div>
+                        <hr />
+                        <div class="col-12 col-lg-13 offset-lg-1 mt-2">
+                            @if (Model.Images != null && Model.Images.Any())
+                            {
+                                <img src="/images/@Model.Images.FirstOrDefault()?.Url" alt="Ảnh sản phẩm" class="img-fluid" style="height:300px;">
+                            }
+                        </div>
+                       @*  <div class="mt-2">
+                            <label class="float-start fw-bold">Số Lượng</label>
+                            <input class="float-start w-25 " name="quantity" value= "1" style="margin-left:10px; border-radius:10px;" />
+                        </div> *@
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col-12 col-md-6 pb-1 d-flex justify-content-center align-items-center">
+                    <a class="btn btn-secondary form-control" asp-action="Index" style="height: 50px;width: 150px; border-radius:10px">Back to List</a>
+                </div>
+                <div>
+                    <!-- Form để thêm sản phẩm vào giỏ hàng -->
+                    <form method="post" asp-action="AddToCart" asp-controller="ShoppingCart">
+                        <input type="hidden" name="userId" value="@userId" />
+                        <input type="hidden" name="productId" value="@Model.ProductId" />                   
+                        <div class="form-group row mt-1 mb-1" style="width:300px;">
+                            <label for="quantity" class="col-sm-3 col-form-label" style="width:100px;">Số lượng:</label>
+                            <div class="col-sm-8" style="padding:0px;">
+                                <input type="number" id="quantity" name="quantity" min="1" class="form-control" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-secondary" style="width:290px;">Thêm vào giỏ hàng</button>
+                    </form>
+                </div>
+            </div>
+                <div class="col-12 col-md-6 pb-1 d-flex justify-content-center align-items-center">
+                    <button asp-controller="ShoppingCart" asp-action="AddToCart" type="submit" class="btn btn-secondary form-control" asp-route-productId="@Model.ProductId" style="height: 50px; width: 150px; border-radius:10px">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,32 @@
+﻿@model WebCosmeticsStore.Models.Order
+@{
+    ViewData["Title"] = "CheckOut";
+    Layout = "~/Views/Shared/_Layout.cshtml";    
+    double totalPrice = (double)TempData["TotalPrice"] > 0 ? (double)TempData["TotalPrice"] : 0;
+}
+
+<h1 class="d-flex justify-content-center">CheckOut</h1>
+
+<form asp-action="Checkout" method="post">
+    <div class="form-group">
+        <label asp-for="OrderDate" class="h6 fw-bold">Ngày đặt hàng</label>
+        <input asp-for="OrderDate" class="form-control" style="height:100px; border-radius:30px" readonly >
+    </div>
+    <div class="form-group">
+        <label asp-for="TotalPrice" class="h6 fw-bold">Tổng Tiền</label>
+        <input asp-for="TotalPrice" value="@totalPrice VNĐ" class="form-control" style="height:100px; border-radius:30px" readonly>
+    </div>
+    <div class="form-group">
+        <label asp-for="ShippingAddress" class="h6 fw-bold">Địa chỉ giao hàng</label>
+        <input asp-for="ShippingAddress" class="form-control" style="height:100px; border-radius:30px" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Notes" class="h6 fw-bold">Ghi Chú</label>
+        <textarea asp-for="Notes" class="form-control" style="height:300px; border-radius:50px"></textarea>
+    </div>
+    <input type="submit" name="payment" class="btn btn-info mt-5 btn-lg" value="Đặt Hàng (COD)" />
+    <input type="submit" name="payment" class="btn btn-info mt-5 btn-lg" value="Thanh Toán VnPay" />
+</form>
+
+
+

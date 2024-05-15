@@ -1,0 +1,158 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<User> UserManager
+@{
+    // Kiểm tra user có trong role Admin không
+    bool isAdmin = User.Identity.IsAuthenticated && UserManager.IsInRoleAsync(await UserManager.GetUserAsync(User), "Admin").Result;
+    bool isManager = User.Identity.IsAuthenticated && UserManager.IsInRoleAsync(await UserManager.GetUserAsync(User), "Manager").Result;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - 2H Center</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <header>
+
+        @*   <div class="header_top">
+        <!--header_top-->
+        <div class="container">
+        <div class="row">
+        <div class="col-sm-6">
+        <div class="contactinfo">
+        <ul class="nav nav-pills">
+        <li><a href="#"><i class="fa fa-phone"></i> 0365 902 637</a></li>
+        <li><a href="#"><i class="fa fa-envelope"></i> 2hcenter@gmail.com</a></li>
+        </ul>
+        </div>
+        </div
+
+        <div class="col-sm-6">
+        <div class="social-icons pull-right">
+        <ul class="nav navbar-nav">
+        <li><a href="https://www.facebook.com/2h.center.2024"><i class="bi bi-facebook"></i></a></li>
+        <li><a href="#"><i class="bi bi-tiktok"></i></a></li>
+        <li><a href="#"><i class="bi bi-instagram"></i></a></li>
+        </ul>
+        </div>
+        </div>
+        </div>
+        </div>
+        </div><!--/header_top--> *@
+
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3" style="background-color:#c1e7f2">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+
+
+                <div class="navbar-collapse collapse">
+                    <ul class="navbar-nav flex-grow-1 " style="height:100px; ">
+                        <div class="logo pull-left">
+                            <a asp-area="" asp-controller="Home" asp-action="Index"><img src="~/images/LOGO2H.png" alt="" /></a>
+                        </div>
+
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item align-content-center">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Product" asp-action="Index">Product</a>
+                            </li>
+                            <li class="nav-item align-content-center">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Category</a>
+                              </li>
+                            <li class="nav-item align-content-center">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="AppRoles" asp-action="Index">Role</a>
+                            </li>
+                            <li class="nav-item align-content-center">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin</a>
+                            </li>
+                        }
+                        else
+                        {
+                        <li class="nav-item align-content-center">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        }
+                    </ul>
+                    <a type="submit" class="bi bi-bag-heart border-0 btn-lg text-dark" style="margin-right:0; font-size: 24px; background-color:#c1e7f2" asp-area="" asp-controller="ShoppingCart" asp-action="Index"></a>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+
+
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    <!--Footer-->
+    <footer id="footer">
+
+        <div class="footer-top position-static">
+            <div class="container">
+                <div class="col-sm-3">
+                    <div class="address">
+                        <img src="/images/LOGO2H.png" alt="" />
+                      @*   <p> 339 Phước Long B Thủ Đức</p> *@
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <ul>
+                        <li>
+                            <a rel="nofollow" href="https://m.me/im.minhyi" titel="Chat Facebook" target="_blank">
+                                <img src="/images/button_messenger.svg" alt="Chat Facebook" title="Chat Facebook">
+                                <p><strong>Chat Facebook</strong> <span>(8h00 - 21h00)</span></p>
+                            </a>
+                        </li>
+                        <li>
+                            <a rel="nofollow" href="https://zalo.me/0365902637" title="Chat Zalo" target="_blank">
+                                <img src="/images/button_zalo.svg" alt="Chat Zalo" title="Chat Zalo">
+                                <p><strong>Chat Zalo</strong> <span>(8h00 - 21h00)</span></p>
+                            </a>
+                        </li>
+                        <li>
+                            <a rel="nofollow" href="tel:0365.902.637" title="Hotline CSKH" target="_blank">
+                                <img src="/images/button_hotline.svg" alt="Gọi Hotline" title="Gọi Hotline">
+                                <p><strong>0365.902.637</strong> <span>(8h00 - 21h00)</span></p>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-sm-9">
+                    <div class="box_contact_footer">
+                        <div class="col-sm-3">
+                            <div class="video-gallery text-center">
+                                <a href="#">
+                                    <p>475A Điện Biên Phủ, P.25, Q.Bình Thạnh, TP.HCM</p>
+                                    <div id="google-map-19" class="box_google_map active">
+                                        <div class="google_map">
+                                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125411.90303685963!2d106.63215784552668!3d10.801969330269387!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317528a459cb43ab%3A0x6c3d29d370b52a7e!2zSFVURUNIIC0gxJDhuqFpIGjhu41jIEPDtG5nIG5naOG7hyBUUC5IQ00gKFNhaSBHb24gQ2FtcHVzKQ!5e0!3m2!1svi!2s!4v1714032242634!5m2!1svi!2s" width="214" height="140" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </footer><!--/Footer-->
+
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,87 @@
+﻿@using System.Collections
+@model WebCosmeticsStore.Models.ShoppingCart
+@using System.Security.Claims;
+@inject ApplicationDbContext context;
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+<div class="px-4 px-lg-0">
+    <div class="pb-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 p-5 bg-white rounded shadow-sm mb-5" style="border-radius:20px">
+                    <!-- Shopping cart table -->
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr style="text-align:center;">
+                                    <th scope="col" class="border-0 bg-light">
+                                        <div class="p-2 px-3 text-uppercase">Hình ảnh</div>
+                                    </th>
+                                    <th scope="col" class="border-0 bg-light">
+                                        <div class="p-2 px-3 text-uppercase">Name</div>
+                                    </th>
+                                    <th scope="col" class="border-0 bg-light">
+                                        <div class="py-2 text-uppercase">Price</div>
+                                    </th>
+                                    <th scope="col" class="border-0 bg-light">
+                                        <div class="py-2 text-uppercase">Quantity</div>
+                                    </th>
+                                    <th scope="col" class="border-0 bg-light">
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td class="border-0 align-middle col">
+                                            <div class="p-2">
+                                                <div class="col-12 col-lg-13 offset-lg-1 mt-2">
+                                                    @if (item.Product.Images?[0] != null)
+                                                    {
+                                                        <img src="/images/@item.Product.Images[0].Url" alt="Ảnh sản phẩm" class="img-fluid" style="height:300px;">
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="border-0 align-middle col"><strong>@item.Product.Name</strong></td>
+                                        <td class="border-0 align-middle col"><strong>@item.Product.Price VNĐ</strong></td>
+                                        @* @foreach (var cartItem in item.CartItems.Where(sc => sc.UserId == userId)){
+                                            <td class="border-0 align-middle col">
+                                                <form asp-controller="ShoppingCart" asp-action="UpdateItem" method="post">
+                                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                                    <input type="number" id="quantity" name="quantity" value="@cartItem.Quantity" required />
+                                                    <button type="submit" style="margin-left:30px;" class="btn btn-info rounded-pill">Update</button>
+                                                </form>
+                                            </td>
+                                            <td class="border-0 align-middle col" style="position: relative;">
+                                                <form asp-controller="ShoppingCart" asp-action="RemoveItem" method="post" style="position: absolute; top: 0; right: 0;">
+                                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                                    <input type="hidden" name="userId" value="@userId" />
+                                                    <button type="submit" class="bi bi-x-lg text-danger bg-white"></button>
+                                                </form>
+                                            </td>
+                                        } *@
+                                        
+                                    </tr>
+
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- End -->
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <ul class="list-unstyled mb-4">
+                    <li class="d-flex justify-content-between py-3 border-bottom fw-bold h4"><strong class="text-muted">Tổng Tiền </strong><strong>$@Model.Items.Sum(i => i.Quantity * i.UnitPrice) VNĐ</strong></li>
+                </ul>
+                <a asp-action="Checkout" class="btn btn-dark rounded-pill py-2 btn-block">Procceed to checkout</a>
+            </div>
+        </div>
+    </div>
+</div>
