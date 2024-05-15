@@ -118,6 +118,8 @@ ipch/
 *.vspx
 *.sap
 .vs/
+.vs/WebCosmeticsStore/FileContentIndex/32984c9b-5565-4352-9d56-7dc477022327.vsidx
+
 # Visual Studio Trace Files
 *.e2e
 
