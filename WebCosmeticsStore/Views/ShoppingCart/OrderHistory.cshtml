@@ -1,0 +1,57 @@
+﻿@model IEnumerable<WebCosmeticsStore.Models.Order>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<WebCosmeticsStore.Models.User> _usermanager
+@{
+    ViewData["Title"] = "OrderHistory";
+    Layout = "~/Views/Shared/_LayoutProduct.cshtml";
+    var currentUser = await _usermanager.GetUserAsync(User);
+}
+
+<<div class="container-fluid my-5  d-flex  justify-content-center">
+    <div class="card card-1">
+        <div class="card-header bg-white">
+            <div class="media flex-sm-row flex-column-reverse justify-content-between  ">
+                <div class="col my-auto"> <h4 class="mb-0">Thanks for your Order,<span class="change-color"></span> @currentUser.FullName !</h4> </div>
+                <div class="col-auto text-center  my-auto pl-0 pt-sm-4"> <img class="img-fluid my-auto align-items-center mb-0 pt-3" src="~/images/LOGO2H.png" width="115" height="115"> <p class="mb-4 pt-0 Glasses">2HCTENTER</p>  </div>
+            </div>
+        </div>
+        @foreach(var ord in Model)
+        {
+            <div class="card-body">
+                <div class="row">
+                    <div class="col"><strong>Order ID: #@ord.Id</strong></div>
+                    <div class="col"><strong>Order Order Date: @ord.OrderDate.ToString("dd-MMMM-yyyy")</strong></div>
+                    <div class="col"><strong>Order Order Total: @String.Format("{0:N0} VND", @ord.OrderDetails.Sum(x => x.Quantity * x.Product.Price))</strong></div>
+                </div>
+                @foreach(var dts in ord.OrderDetails)
+                {
+                    <div class="row">
+                        <div class="col">
+                            <div class="card card-2">
+                                <div class="card-body">
+                                    <div class="media">
+                                        <div class="sq align-self-center "> <img class="img-fluid  my-auto align-self-center mr-2 mr-md-4 pl-0 p-0 m-0" src="~/images/@dts.Product.ImageUrl" width="135" height="135" /> </div>
+                                        <div class="media-body my-auto text-right">
+                                            <div class="row  my-auto flex-column flex-md-row">
+                                                <div class="col my-auto"> <h6 class="mb-0"> @dts.Product.Name</h6>  </div>
+                                                <div class="col-auto my-auto"> <small>@dts.Product.Category.Name </small></div>
+                                                <div class="col my-auto"> <small>Qty : @dts.Quantity</small></div>
+                                                <div class="col my-auto">
+                                                    <h6 class="mb-0"> @String.Format("{0:N0} VND", dts.Product.Price * dts.Quantity)</h6>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr class="my-3 ">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+    </div>
+</div>
+

@@ -1,68 +1,182 @@
-﻿@model IEnumerable<WebCosmeticsStore.Models.Product>
-
+﻿@using X.PagedList.Mvc
+@model WebCosmeticsStore.ViewsModels.VMHomeP
 @{
     ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_LayoutProduct.cshtml";
+    int pageCount = Model.Products.PageCount;
+    int currentPage = Model.Products.PageNumber;
 }
-<p>
-    <a class="btn btn-dark" asp-action="Add">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Images)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th></th>
-            <th></th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+
+<div class="flex-w flex-sb-m p-b-52">
+    <div class="flex-w flex-l-m filter-tope-group m-tb-10">
+        @foreach (var category in Model.Categories)
         {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Price)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
-                <td>
-                   @if (item.Images != null && item.Images.Any())
-                    {
-                        <img src="~/images/@item.Images.First().Url" alt="Product Image" style="max-width: 150px; max-height: 200px;" />
-                    }
-                    else
-                    {
-                        <p>No image available</p>
-                    }
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Category.Name)
-                </td>
-                <td>
-                    <div class="btn-group" role="group">
-                        <a asp-action="Update" asp-route-id="@item.ProductId" class="btn btn-secondary">View</a>
-                        <a asp-action="Detail" asp-route-id="@item.ProductId" class="btn btn-secondary">Detail</a>
-                        <a asp-action="Delete" asp-route-id="@item.ProductId" class="btn btn-secondary">Delete</a>
-                    </div>
-                </td>
-            </tr>
+            <a class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" asp-action="Index" asp-controller="Product" asp-route-id="@category.Id">
+                @category.Name
+            </a>
         }
-    </tbody>
-</table>
+    </div>
+
+    <div class="flex-w flex-c-m m-tb-10">
+        <div class="flex-c-m stext-106 cl6 size-104 bor4 pointer hov-btn3 trans-04 m-r-8 m-tb-4 js-show-filter">
+            <i class="icon-filter cl2 m-r-6 fs-15 trans-04 zmdi zmdi-filter-list"></i>
+            <i class="icon-close-filter cl2 m-r-6 fs-15 trans-04 zmdi zmdi-close dis-none"></i>
+            Filter
+        </div>
+
+        <div class="flex-c-m stext-106 cl6 size-105 bor4 pointer hov-btn3 trans-04 m-tb-4 js-show-search">
+            <i class="icon-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-search"></i>
+            <i class="icon-close-search cl2 m-r-6 fs-15 trans-04 zmdi zmdi-close dis-none"></i>
+            Search
+        </div>
+    </div>
+
+    <!-- Search product -->
+    <form method="post">
+        <div class="dis-none panel-search w-full p-t-10 p-b-15">
+            <div class="bor8 dis-flex p-l-15">
+                <button class="size-113 flex-c-m fs-16 cl2 hov-cl1 trans-04" asp-action="SearchBox" asp-controller="Product">
+                    <i class="zmdi zmdi-search"></i>
+                </button>
+
+                <input class="mtext-107 cl2 size-114 plh2 p-r-15" type="text" name="value" placeholder="Search">
+            </div>
+        </div>
+    </form>
+    
+
+    <!-- Filter -->
+    <div class="dis-none panel-filter w-full p-t-10">
+        <div class="wrap-filter flex-w bg6 w-full p-lr-40 p-t-27 p-lr-15-sm">
+            <div class="filter-col1 p-r-15 p-b-27">
+                <div class="mtext-102 cl2 p-b-15">
+                    Sort By
+                </div>
+
+                <ul>
+                    <li class="p-b-6">
+                        <a asp-action="Sorting" asp-controller="Product" asp-area="default" asp-route-type="1" class="filter-link stext-106 trans-04">
+                            Default
+                        </a>
+                    </li>
+
+                    
+                    <li class="p-b-6">
+                        <a asp-action="Sorting" asp-controller="Product" asp-area="default" asp-route-type="2" class="filter-link stext-106 trans-04">
+                            Price: Low to High
+                        </a>
+                    </li>
+
+                    <li class="p-b-6">
+                        <a asp-action="Sorting" asp-controller="Product" asp-area="default" asp-route-type="3" class="filter-link stext-106 trans-04">
+                            Price: High to Low
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="filter-col2 p-r-15 p-b-27">
+                <div class="mtext-102 cl2 p-b-15">
+                    Price
+                </div>
+
+                <ul>
+                    <li class="p-b-6">
+                        <a href="#" class="filter-link stext-106 trans-04 filter-link-active">
+                            All
+                        </a>
+                    </li>
+
+                    <li class="p-b-6">
+                        <a href="#" class="filter-link stext-106 trans-04">
+                            $0.00 - $50.00
+                        </a>
+                    </li>
+
+                    <li class="p-b-6">
+                        <a href="#" class="filter-link stext-106 trans-04">
+                            $50.00 - $100.00
+                        </a>
+                    </li>
+
+                    <li class="p-b-6">
+                        <a href="#" class="filter-link stext-106 trans-04">
+                            $100.00 - $150.00
+                        </a>
+                    </li>
+
+                    <li class="p-b-6">
+                        <a href="#" class="filter-link stext-106 trans-04">
+                            $150.00 - $200.00
+                        </a>
+                    </li>
+
+                    <li class="p-b-6">
+                        <a href="#" class="filter-link stext-106 trans-04">
+                            $200.00+
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            
+        </div>
+    </div>
+</div>
+
+<div class="row isotope-grid">
+    @foreach (var product in Model.Products)
+    {
+        <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item women">
+            <!-- Block2 -->
+            <div class="block2">
+                <div class="block2-pic hov-img0">
+                    <img src="~/images/@product.ImageUrl" alt="IMG-PRODUCT">
+
+                    <a asp-action="Detail" asp-controller="Product" asp-route-id="@product.ProductId" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04">
+                        Quick View
+                    </a>
+                </div>
+
+                <div class="block2-txt flex-w flex-t p-t-14">
+                    <div class="block2-txt-child1 flex-col-l ">
+                        <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
+                            @product.Name
+                        </a>
+                        <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-id-b2 p-b-6" hidden>
+                            @product.ProductId
+                        </a>
+
+                        <span class="stext-105 cl3">
+                            @String.Format("{0:N0} VND", @product.Price)
+                        </span>
+                    </div>
+
+                    <div class="block2-txt-child2 flex-r p-t-3">
+                        <a asp-action="AddWishList" asp-controller="WishLish" asp-route-id ="@product.ProductId" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
+                            <img class="icon-heart1 dis-block trans-04" src="~/layout/images/icons/icon-heart-01.png" alt="ICON">
+                            <img class="icon-heart2 dis-block trans-04 ab-t-l" src="~/layout/images/icons/icon-heart-02.png" alt="ICON">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+<!-- Load more -->
+<div class="flex-c-m flex-w w-full p-t-45">
+    @for (int i = 1; i <= pageCount; i++)
+    {
+        if (i == currentPage)
+        {
+            <a class="active btn btn-outline-info" href="#" style="border-radius:10px; margin-right:10px">@i</a>
+        }
+        else
+        {
+            <a class="btn btn-outline-primary" style="border-radius:10px;margin-right:10px" href="@Url.Action("Index", "Product", new { page = i })">@i</a>
+        }
+    }
+</div>
+
+

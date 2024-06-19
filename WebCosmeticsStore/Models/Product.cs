@@ -16,5 +16,6 @@ namespace WebCosmeticsStore.Models
         public int CategoryId { get; set; }
         public Category? Category { get; set; }
         public List<CartItem>? CartItems { get; set; }
+        public ICollection<Comment>? Comments { get; set; }
     }
 }

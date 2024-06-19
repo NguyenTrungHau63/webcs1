@@ -1,214 +1,149 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Azure;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using WebCosmeticsStore.Models;
-using WebCosmeticsStore.Repositories;
+using WebCosmeticsStore.ViewsModels;
+using X.PagedList;
 
 namespace WebCosmeticsStore.Controllers
 {
-
     public class ProductController : Controller
-    {
-        private readonly IProductRepository _productRepository;
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IProductImageRepository _productImageRepository;
-        private readonly ApplicationDbContext _context;
+	{
+		private readonly ApplicationDbContext _context;
+		private readonly object _productRepository;
+        private readonly UserManager<User> _userManager;
 
-        public ProductController(ApplicationDbContext context, IProductRepository productRepository, IProductImageRepository productImageRepository, ICategoryRepository categoryRepository)
-        {
-            _productRepository = productRepository;
-            _categoryRepository = categoryRepository;
-            _productImageRepository = productImageRepository;
-            _context = context;
-        }
+		public ProductController(ApplicationDbContext context, UserManager<User> userManager)
+		{
+			_context = context;
+            _userManager = userManager;
+		}
 
-        // GET: Product --- Hien thi danh sach san pham
-        public async Task<IActionResult> Index()
+
+        public async Task<IActionResult> Index(int? id, int page = 1)
         {
-            var products = await _productRepository.GetAllAsync();
-            foreach (var product in products)
+            page = page < 1 ? 1 : page;
+            int pagesize = 20;
+            var productsQuery = _context.Products.Include(x => x.Comments).Include(x => x.Images).AsQueryable();
+
+            if (id.HasValue)
             {
-                product.Images = await _context.ProductImages
-                    .Where(pi => pi.ProductId == product.ProductId)
-                    .ToListAsync();               
+                productsQuery = productsQuery.Where(x => x.CategoryId == id);
             }
-            return View(products);
+
+            var products = await productsQuery.Include(x => x.Comments).ToPagedListAsync(page, pagesize);
+            var categories = await _context.Categories.ToListAsync();
+
+            var model = new VMHomeP()
+            {
+                Products = products,
+                Categories = categories
+            };
+
+            return View(model);
         }
 
-        // GET: Product/Details/5  -- Hien thi thong tin chi thiet san pham
+
         public async Task<IActionResult> Detail(string id)
-        {
-            var product = await _productRepository.GetByIdAsync(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            product.Images = await _context.ProductImages
-                    .Where(pi => pi.ProductId == product.ProductId)
-                    .ToListAsync();
-            return View(product);
-        }
+		{
+			var product = await _context.Products
+				.Include (x => x.Images)
+                .Include(x => x.Comments)
+				.FirstOrDefaultAsync(x => x.ProductId == id);
 
-        // GET: Product/Create  -- Hien thi form them san pham moi
-        [HttpGet]
-        public async Task<IActionResult> Add()
-        {
-            var categories = await _categoryRepository.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name");
-            return View();
-        }
-
-        // POST: Product/Create   -- Xu ly them san pham moi
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+			return View(product);
+		}
         [HttpPost]
-        public async Task<IActionResult> Add(Product product, IFormFile imageUrl)
+		public async Task<IActionResult> SearchBox(string value, int page =1)
         {
-            if (ModelState.IsValid)
+
+            page = page < 1 ? 1 : page;
+            int pageSize = 20;
+
+            // Get the initial paged list of products
+            var products = await _context.Products.Include(p => p.Images).ToPagedListAsync(page, pageSize);
+
+            // Apply search filter if searchTerm is provided
+            if (!string.IsNullOrEmpty(value))
             {
-                await _productRepository.AddAsync(product);
-                await _context.SaveChangesAsync(); // Lưu product trước
+                var name = value.ToUpper().Trim();
+                // Filter products based on the search term
+                var filteredProducts = _context.Products
+                                               .Include(p => p.Images)
+                                               .Where(p => p.Name.ToUpper().Contains(name));
 
-                if (imageUrl != null)
-                {
-                    // Lưu đường dẫn hình ảnh đại diện tham khảo hàm SaveImage
-                    var imageUrlString = await SaveImage(imageUrl);
-                    // Tạo đối tượng ProductImage và lưu vào cơ sở dữ liệu
-                    var productImage = new ProductImage { Url = imageUrlString, ProductId = product.ProductId };
-                    await _productImageRepository.UpdateAsync(productImage);
-                }
-
-                return RedirectToAction(nameof(Index));
+                // Get the paged list of the filtered products
+                products = await filteredProducts.ToPagedListAsync(page, pageSize);
             }
-
-            // Xử lý lỗi ModelState
-            var categories = await _categoryRepository.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name");
-            return View(product);
-        }
-        // Method SaveImage
-        private async Task<string> SaveImage(IFormFile image)
-        {
-            var savePath = Path.Combine("wwwroot/images", image.FileName);
-            // Thay đổi đường dẫn theo cấu hình của bạn
-            using (var fileStream = new FileStream(savePath, FileMode.Create))
+            var categories = await _context.Categories.ToListAsync();
+            var model = new VMHomeP()
             {
-                await image.CopyToAsync(fileStream);
-            }
-            return image.FileName; // Trả về đường dẫn tương đối
+                Products = products,
+                Categories = categories
+            };
+            // Return the view with the paged list of products
+            return View("Index", model);
         }
 
-        // GET: Product/Update/5  --- Hien thi form cap nhat san pham
-        public async Task<IActionResult> Update(string id)
-        {
-            var product = await _productRepository.GetByIdAsync(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            var categories = await _categoryRepository.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name", product.CategoryId);
-
-            return View(product);
-        }
-
-        // POST: Product/Update/5  --- Xu ly cap nhat san pham
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(string id, [Bind("ProductId,Name,Price,Description,CategoryId")] Product product, IFormFile imageUrl)
-        {
-            ModelState.Remove("ImageUrl");
-            if (id != product.ProductId)
+		public async Task<IActionResult> SubmitReview(int? rating, string? message, string? name, string productId)
+		{
+            var user = await _userManager.GetUserAsync(User);
+            var product = await _context.Products.FirstOrDefaultAsync(x => x.ProductId == productId);
+            if (message == null || name == null) return NotFound();
+
+            var comment = new Comment()
             {
-                return NotFound();
+                Email = user.Email,
+                Message = message,
+                FullName = name,
+                Rate = rating,
+                CommentDate = DateTime.Now,
+                User = user,
+                UserID = user.Id,
+                Product = product,
+                ProductID = productId,
+                ParentID = 0
+            };
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+			return Redirect(Request.Headers["Referer"].ToString());
+
+		}
+
+		public async Task<IActionResult> Sorting(int type, int page = 1)
+        {
+            page = page < 1 ? 1 : page;
+            int pageSize = 20;
+            var productsQuery = _context.Products.Include(p => p.Images).AsQueryable();
+            switch (type)
+            {
+                case 2:
+                    productsQuery = productsQuery.OrderBy(p => p.Price);
+                    break;
+                case 3:
+                    productsQuery = productsQuery.OrderByDescending(p => p.Price);
+                    break;
+                default:
+                    // Sắp xếp theo một thứ tự mặc định ở đây nếu cần
+                    break;
             }
 
-            if (ModelState.IsValid)
+            var products = await productsQuery.ToPagedListAsync(page, pageSize);
+            var categories = await _context.Categories.ToListAsync();
+
+            var model = new VMHomeP()
             {
-                var existingProduct = await _productRepository.GetByIdAsync(id);
+                Products = products,
+                Categories = categories
+            };
 
-                if (existingProduct == null)
-                {
-                    return NotFound();
-                }
-
-                // Xử lý ảnh
-                if (imageUrl != null && imageUrl.Length > 0)
-                {
-                    try
-                    {
-                        // Kiểm tra xem sản phẩm đã có hình ảnh chưa
-                        var existingProductImage = await _productImageRepository.GetByProductIdAsync(existingProduct.ProductId);
-
-                        // Nếu đã có, cập nhật lại đường dẫn ảnh
-                        if (existingProductImage != null)
-                        {
-                            existingProductImage.Url = await SaveImage(imageUrl);
-                            await _productImageRepository.UpdateAsync(existingProductImage);
-                        }
-                        else
-                        {
-                            // Nếu chưa có, tạo mới
-                            var imageUrlString = await SaveImage(imageUrl);
-                            var productImage = new ProductImage
-                            {
-                                Url = imageUrlString,
-                                ProductId = product.ProductId
-                            };
-                            await _productImageRepository.AddAsync(productImage);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("ImageUrl", ex.Message);
-                        return View(product);
-                    }
-                }
-
-                // Cập nhật thông tin sản phẩm
-                existingProduct.Name = product.Name;
-                existingProduct.Price = product.Price;
-                existingProduct.Description = product.Description;
-                existingProduct.CategoryId = product.CategoryId;
-                await _productRepository.UpdateAsync(existingProduct);
-                return RedirectToAction(nameof(Index));
-            }
-
-            var categories = await _categoryRepository.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name");
-            return View(product);
+            return RedirectToAction("Index");
         }
 
-        // GET: Product/Delete/5  --- Hien thi form xac nhan xoa san pham
-        public async Task<IActionResult> Delete(string id)
-        {
-            var product = await _productRepository.GetByIdAsync(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            product.Images = await _context.ProductImages
-                   .Where(pi => pi.ProductId == product.ProductId)
-                   .ToListAsync();
-            return View(product);
-        }
-
-        // POST: Product/Delete/5    --- Xu ly hoa san pham
-        [HttpPost, ActionName("Delete")]
-        public async Task<IActionResult> DeleteConfirmed(string id)
-        {
-            await _productRepository.DeleteAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
-
+        
     }
+
+    
 }

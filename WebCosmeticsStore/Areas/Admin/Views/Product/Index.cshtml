@@ -1,0 +1,69 @@
+﻿@using X.PagedList.Mvc;
+@model X.PagedList.IPagedList<WebCosmeticsStore.Models.Product>
+
+@{
+    ViewData["Title"] = "Index";
+    int pageCount = Model.PageCount;
+    int currentPage = Model.PageNumber;
+}
+<p>
+    <a class="btn btn-dark" asp-action="Add">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>
+                Name
+            </th>
+            <th>
+                Price
+            </th>
+            
+            <th>
+                Category
+            </th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.ProductId)</td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Price)
+                </td>
+                
+                <td>
+                    @Html.DisplayFor(modelItem => item.Category.Name)
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a asp-action="Update" asp-route-id="@item.ProductId" class="btn btn-secondary">View</a>
+                        <a asp-action="Detail" asp-route-id="@item.ProductId" class="btn btn-secondary">Detail</a>
+                        <a asp-action="Delete" asp-route-id="@item.ProductId" class="btn btn-secondary">Delete</a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="flex-c-m flex-w w-full p-t-45">
+    @for (int i = 1; i <= pageCount; i++)
+    {
+        if (i == currentPage)
+        {
+            <a class="active btn btn-outline-info" href="#" style="border-radius:10px; margin-right:10px">@i</a>
+        }
+        else
+        {
+            <a class="btn btn-outline-primary" style="border-radius:10px;margin-right:10px" href="@Url.Action("Index", "Product", new { page = i })">@i</a>
+        }
+    }
+</div>

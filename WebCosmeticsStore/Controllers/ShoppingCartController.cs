@@ -10,6 +10,7 @@ using WebCosmeticsStore.Services;
 
 namespace WebCosmeticsStore.Controllers
 {
+    
     public class ShoppingCartController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -39,7 +40,24 @@ namespace WebCosmeticsStore.Controllers
             }
 
             var cart = HttpContext.Session.GetObjectFromJson<ShoppingCart>("Cart") ?? new ShoppingCart();
+            if(cart.Items.Count < 1)
+            {
+                var orders = await _context.Orders
+                    .Include(u => u.User)
+                    .Include(p => p.OrderDetails)
+                        .ThenInclude(p => p.Product)
+                        .ThenInclude(p => p.Category)
+                    .Where(x => x.User.Id == user.Id)
+                    .ToListAsync();
+                return View("OrderHistory", orders);
+            }
+            foreach(var item in cart.Items)
+            {
+                var product = await _context.Products.Include(p => p.Images).FirstOrDefaultAsync(x => x.ProductId == item.ProductId);
+                item.Product = product;
+            }
 
+            
             return View(cart);
         }
 
@@ -87,17 +105,18 @@ namespace WebCosmeticsStore.Controllers
             HttpContext.Session.Remove("Cart");
             return View("OrderCompleted", order.Id);
         }
-
-        public async Task<IActionResult> AddToCart(string userId, string productId, int quantity, int categoryId)
+		[Authorize]
+		public async Task<IActionResult> AddToCart(string productId, int quantity)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-            var product = _context.Products.FirstOrDefault(p => p.ProductId == productId);
+            var user = await _userManager.GetUserAsync(User);
+            var product = _context.Products
+                .FirstOrDefault(p => p.ProductId == productId);
             var cart = HttpContext.Session.GetObjectFromJson<ShoppingCart>("Cart") ?? new ShoppingCart();
 
             // Thêm sản phẩm vào giỏ hàng
             var cartItem = new CartItem
             {
-                UserId = userId,
+                UserId = user.Id,
                 ProductId = productId,
                 Quantity = quantity,
                 UnitPrice = (double)product.Price,
@@ -105,7 +124,7 @@ namespace WebCosmeticsStore.Controllers
             };
             cart.AddItem(cartItem);
             HttpContext.Session.SetObjectAsJson("Cart", cart);
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "ShoppingCart");
         }
         [HttpPost]
         public async Task<IActionResult> RemoveItem(string userId, string productId)
@@ -172,55 +191,11 @@ namespace WebCosmeticsStore.Controllers
              return RedirectToAction("PaymentSuccess");
          }
 
-    
-        //public async Task<IActionResult> PaymentCallBack()
-        //{
-        //    var response = _vnPayService.PaymentExecute(Request.Query);
-        //    var cart = HttpContext.Session.GetObjectFromJson<ShoppingCart>("Cart") ?? new ShoppingCart();
-        //    if (response == null || response.VnPayResponseCode != "00")
-        //    {
-        //        TempData["Message"] = "Lỗi thanh toán VNPAY:{ response.VnPayResponseCode}";
-        //        return RedirectToAction("PaymentFail");
-        //    }
 
-        //    var user = await _userManager.GetUserAsync(User);
-        //    try
-        //    {
-        //        var order = new Order()
-        //        {
-        //            UserId = user.Id,
-        //            OrderDate = DateTime.Now,
-                    
-        //        };
-        //        order.OrderDetails = cart.Items.Select(i => new OrderDetail
-        //        {
-        //            ProductId = i.ProductId,
-        //            Quantity = (int)i.Quantity,
-        //            Price = (decimal)i.TotalPrice,
-        //        }).ToList();
+        public async Task<IActionResult> DetailOrderHistory(int id)
+        {
 
-        //        //foreach (var item in cart.Items)
-        //        //{
-        //        //    var product = await _context.Products
-        //        //        .Include(p => p.ProductDetails)
-        //        //        .FirstOrDefaultAsync(x => x.ProductID == item.ProductId);
-        //        //    product.QuantityOnHand -= (int)item.Quantity;
-        //        //    var prodt = product.ProductDetails.FirstOrDefault(x => x.SizeID == item.SizeID);
-        //        //    prodt.Quantity -= (int)item.Quantity;
-        //        //    _context.Products.Update(product);
-        //        //    await _context.SaveChangesAsync();
-        //        //}
-        //        _context.Orders.Add(order);
-        //        await _context.SaveChangesAsync();
-        //        HttpContext.Session.Remove("Cart");
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //    }
-        //    TempData["Message"] = $"Thanh toán VNPAY thành công";
-        //    return RedirectToAction("OrderCompleted");
-        //}
+            return View();
+        }
     }
 }

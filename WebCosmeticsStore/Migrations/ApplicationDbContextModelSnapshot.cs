@@ -197,6 +197,47 @@ namespace WebCosmeticsStore.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("WebCosmeticsStore.Models.Comment", b =>
+                {
+                    b.Property<int>("CommentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CommentID"));
+
+                    b.Property<DateTime?>("CommentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductID")
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int?>("Rate")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("CommentID");
+
+                    b.HasIndex("ProductID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("Comments");
+                });
+
             modelBuilder.Entity("WebCosmeticsStore.Models.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -463,6 +504,21 @@ namespace WebCosmeticsStore.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("WebCosmeticsStore.Models.Comment", b =>
+                {
+                    b.HasOne("WebCosmeticsStore.Models.Product", "Product")
+                        .WithMany("Comments")
+                        .HasForeignKey("ProductID");
+
+                    b.HasOne("WebCosmeticsStore.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("WebCosmeticsStore.Models.Order", b =>
                 {
                     b.HasOne("WebCosmeticsStore.Models.User", "User")
@@ -547,6 +603,8 @@ namespace WebCosmeticsStore.Migrations
             modelBuilder.Entity("WebCosmeticsStore.Models.Product", b =>
                 {
                     b.Navigation("CartItems");
+
+                    b.Navigation("Comments");
 
                     b.Navigation("Images");
                 });

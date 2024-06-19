@@ -13,12 +13,14 @@ builder.Services.AddIdentity<User, IdentityRole>()
     .AddDefaultTokenProviders()
     .AddDefaultUI()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddRazorPages();
+builder.Services.AddControllersWithViews();
+
+
+builder.Services.AddSingleton<ShoppingCartService>();
 builder.Services.AddScoped<IProductRepository, EFProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, EFCategoryRepository>();
 builder.Services.AddScoped<IProductImageRepository, EFProductImageRepository>();
 builder.Services.AddScoped<IShoppingCart, EFShoppingCart>();
-builder.Services.AddControllersWithViews();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -26,7 +28,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 builder.Services.AddSingleton<IVnPayService, VnPayService>();
-
+builder.Services.AddRazorPages();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -47,8 +49,11 @@ app.UseAuthentication();
 
 app.UseEndpoints(endpoints =>
 {
-    _ = endpoints.MapControllerRoute(name: "Product", pattern: "{controller=Product}/{action=Index}/{id?}");
-    _ = endpoints.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+	_ = endpoints.MapControllerRoute(
+			name: "admin",
+			pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+		  );
+	_ = endpoints.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 });
 app.MapRazorPages();
 app.Run();

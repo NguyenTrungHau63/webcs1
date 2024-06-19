@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 using WebCosmeticsStore.Models;
+using X.PagedList;
 
 namespace WebCosmeticsStore.Repositories
 {
@@ -15,6 +17,14 @@ namespace WebCosmeticsStore.Repositories
             return await _context.Products
             .Include(p => p.Category) 
             .ToListAsync();
+        }
+        public async Task<IEnumerable<Product>> GetAllAndPageAsync(int page = 1)
+        {
+            int pagesize =20;
+            // return await _context.Products.ToListAsync();
+            return await _context.Products
+            .Include(p => p.Category)
+            .ToPagedListAsync(page, pagesize);
         }
         public async Task<Product> GetByIdAsync(string productId)
         {

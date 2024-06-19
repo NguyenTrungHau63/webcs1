@@ -1,7 +1,7 @@
 ﻿@model WebCosmeticsStore.Models.Order
 @{
     ViewData["Title"] = "CheckOut";
-    Layout = "~/Views/Shared/_Layout.cshtml";    
+    Layout = "~/Views/Shared/_LayoutProduct.cshtml";    
     double totalPrice = (double)TempData["TotalPrice"] > 0 ? (double)TempData["TotalPrice"] : 0;
 }
 
